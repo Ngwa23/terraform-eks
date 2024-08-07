@@ -4,8 +4,8 @@
 #  * EKS Node Group to launch worker nodes
 #
 
-resource "aws_iam_role" "demo-node" {
-  name = "terraform-eks-demo-node"
+resource "aws_iam_role" "ngwa-node" {
+  name = "terraform-eks-ngwa-node"
 
   assume_role_policy = <<POLICY
 {
@@ -53,7 +53,7 @@ data "aws_iam_policy_document" "worker_autoscaling" {
 
     condition {
       test     = "StringEquals"
-      variable = "autoscaling:ResourceTag/kubernetes.io/cluster/${aws_eks_cluster.demo.id}"
+      variable = "autoscaling:ResourceTag/kubernetes.io/cluster/${aws_eks_cluster.ngwa.id}"
       values   = ["owned"]
     }
 
@@ -67,37 +67,37 @@ data "aws_iam_policy_document" "worker_autoscaling" {
 
 resource "aws_iam_role_policy_attachment" "workers_autoscaling" {
   policy_arn = aws_iam_policy.worker_autoscaling.arn
-  role       = aws_iam_role.demo-node.name
+  role       = aws_iam_role.ngwa-node.name
 }
 
 resource "aws_iam_policy" "worker_autoscaling" {
-  name_prefix = "eks-worker-autoscaling-${aws_eks_cluster.demo.id}"
-  description = "EKS worker node autoscaling policy for cluster ${aws_eks_cluster.demo.id}"
+  name_prefix = "eks-worker-autoscaling-${aws_eks_cluster.ngwa.id}"
+  description = "EKS worker node autoscaling policy for cluster ${aws_eks_cluster.ngwa.id}"
   policy      = data.aws_iam_policy_document.worker_autoscaling.json
 }
 
 
 
-resource "aws_iam_role_policy_attachment" "demo-node-AmazonEKSWorkerNodePolicy" {
+resource "aws_iam_role_policy_attachment" "ngwa-node-AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.demo-node.name
+  role       = aws_iam_role.ngwa-node.name
 }
 
-resource "aws_iam_role_policy_attachment" "demo-node-AmazonEKS_CNI_Policy" {
+resource "aws_iam_role_policy_attachment" "ngwa-node-AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.demo-node.name
+  role       = aws_iam_role.ngwa-node.name
 }
 
-resource "aws_iam_role_policy_attachment" "demo-node-AmazonEC2ContainerRegistryReadOnly" {
+resource "aws_iam_role_policy_attachment" "ngwa-node-AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.demo-node.name
+  role       = aws_iam_role.ngwa-node.name
 }
 
-resource "aws_eks_node_group" "demo" {
-  cluster_name    = aws_eks_cluster.demo.name
-  node_group_name = "demo"
-  node_role_arn   = aws_iam_role.demo-node.arn
-  subnet_ids      = aws_subnet.demo[*].id
+resource "aws_eks_node_group" "ngwa" {
+  cluster_name    = aws_eks_cluster.ngwa.name
+  node_group_name = "ngwa"
+  node_role_arn   = aws_iam_role.ngwa-node.arn
+  subnet_ids      = aws_subnet.ngwa[*].id
   instance_types = [var.eks_node_instance_type]
   remote_access{
       ec2_ssh_key = var.key_pair_name
@@ -112,8 +112,8 @@ resource "aws_eks_node_group" "demo" {
 
   depends_on = [
     aws_iam_role_policy_attachment.workers_autoscaling,
-    aws_iam_role_policy_attachment.demo-node-AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.demo-node-AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.demo-node-AmazonEC2ContainerRegistryReadOnly,
+    aws_iam_role_policy_attachment.ngwa-node-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.ngwa-node-AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.ngwa-node-AmazonEC2ContainerRegistryReadOnly,
   ]
 }
