@@ -11,4 +11,7 @@ variable "key_pair_name" {
 }
 variable "eks_node_instance_type" {
   default = "t2.medium"
+tags = {
+    Name = "appserver"
+  }
 }
